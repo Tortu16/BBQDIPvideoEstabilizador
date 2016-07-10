@@ -71,11 +71,28 @@ m = [A(1,1) A(1,2) tx;
          tx      ty    1];
     tform = affine2d(m);
     outputImage = imwarp(inputImage,tform);
+    %%%%%%%%%%%%%%
+    %
+    % Crops image
+    %
+    %%%%%%%%%%%%%%
+    center = round(size(outputImage)/2);
+    outputImage = imcrop(outputImage, [center(1)-round(inputsize(1)/2-30)+1, center(2)-round(inputsize(2)/2-30)+1,inputsize(1)-100, inputsize(2)-60]);
+    
+    % Turns frame to an RGB image
     RGB = cat (3, outputImage, outputImage ,outputImage);
+    % Adds frame to image stack for later conversion to video.
     f(n) = im2frame (RGB);
  end
  
  % Reproducción del vídeo
  movie(f)
+ 
+ v = VideoWriter('test.avi');
+open (v);
+for n = 1:frames
+    writeVideo(v,f(n));
+end
+ close (v);
 
 
