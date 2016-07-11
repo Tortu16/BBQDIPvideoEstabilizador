@@ -1,17 +1,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-%  Construcción del vídeo inestable
+%  Construccion del video inestable
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clear
 
-% Imagen de referencia
-filename = 'pout.tif';
-inputImage = imread(filename);
-info = imfinfo(filename);
-
-% Definición de variables aleatorias de desestabilización
+% Definicion de variables aleatorias de desestabilizacion
 theta = 0;
 phi = 0;
 tx = 0;
@@ -30,7 +25,7 @@ m = [A(1,1) A(1,2) tx;
      A(2,1) A(2,2) ty; 
      0      0      1];
 
- % Definición de las características estadísticas del ruido
+ % Definicion de las caracteristicas estadisticas del ruido
  
  var_theta = 1;
  var_tx = 1;
@@ -38,21 +33,45 @@ m = [A(1,1) A(1,2) tx;
  
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %
- %       Construcción del vídeo 
+ %       Construccion del video 
  %
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  
- vid_Duration = 5; %5s
- frames = vid_Duration*30; % 30 fps.
- 
- % Inicialización de la pila de imágenes que se convierten a vídeo
- RGB = cat (3, inputImage, inputImage ,inputImage);
- f(frames) = im2frame(RGB);
- 
- % La imágen se distorciona aleatoriamente en cada cuadro
- % El vídeo se compone de la secuencia de imágenes deformadas
- 
+
+% % Imagen de referencia
+% filename = 'pout.tif';
+% inputImage = imread(filename);
+% info = imfinfo(filename);
+%  
+%  vid_Duration = 5; %5s
+%  frames = vid_Duration*30; % 30 fps.
+%  
+%  % Inicializacion de la pila de imagenes que se convierten a v?deo
+%  RGB = cat (3, inputImage, inputImage ,inputImage);
+%  f(frames) = im2frame(RGB);
+%  
+%  % La imagen se distorciona aleatoriamente en cada cuadro
+%  % El video se compone de la secuencia de imagenes deformadas
+%  inputsize = size(inputImage);
+
+v = VideoReader('xylophone.mp4');
+s = struct('cdata',zeros(240,320,3,'uint8'),'colormap',[]);
+k=1;
+while hasFrame(v)
+    s(k).cdata = readFrame(v);
+    k = k+1;
+end
+whos s
+close
+%movie(s)
+s2 = size(s);
+frames = s2(2); 
+inputsize = size(s(1).cdata)
+
  for n = 1:frames
+     
+    inputImage = s(n).cdata;
+     
     theta = var_theta * randn;
     tx = var_tx * randn;
     ty = var_ty * randn;
@@ -71,28 +90,34 @@ m = [A(1,1) A(1,2) tx;
          tx      ty    1];
     tform = affine2d(m);
     outputImage = imwarp(inputImage,tform);
-    %%%%%%%%%%%%%%
-    %
-    % Crops image
-    %
-    %%%%%%%%%%%%%%
-    center = round(size(outputImage)/2);
-    outputImage = imcrop(outputImage, [center(1)-round(inputsize(1)/2-30)+1, center(2)-round(inputsize(2)/2-30)+1,inputsize(1)-100, inputsize(2)-60]);
     
-    % Turns frame to an RGB image
-    RGB = cat (3, outputImage, outputImage ,outputImage);
-    % Adds frame to image stack for later conversion to video.
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %
+    % Recorte de imagen
+    %
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    center = round(inputsize/2);
+    center2 = round(inputsize/4);
+    outputImage = imcrop(outputImage, [center(1)-100,center(2)-100,250, 150]);
+    
+    % Convierte cuadro a imagen RGB
+    
+    %RGB = cat (3, outputImage, outputImage ,outputImage);
+    RGB = outputImage; %Cuando se importa un video, ya esta en RGB
+    % Agrega cuadro a pila de imagenes que conforman el video.
+    
     f(n) = im2frame (RGB);
  end
  
- % Reproducción del vídeo
- movie(f)
+ % Reproduccion del video
+ %movie(f)
  
- v = VideoWriter('test.avi');
+ % Exporta el video a un archivo
+ 
+v = VideoWriter('movideo.avi');
 open (v);
 for n = 1:frames
     writeVideo(v,f(n));
 end
  close (v);
-
-
