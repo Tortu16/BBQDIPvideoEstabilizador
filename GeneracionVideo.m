@@ -99,7 +99,7 @@ inputsize = size(s(1).cdata)
     
     center = round(inputsize/2);
     center2 = round(inputsize/4);
-    outputImage = imcrop(outputImage, [center(1)-100,center(2)-100,250, 150]);
+    outputImage = imcrop(outputImage, [center(1)-100,center(2)-150,280, 200]);
     
     % Convierte cuadro a imagen RGB
     
